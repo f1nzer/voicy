@@ -1,12 +1,7 @@
-import {
-  Application,
-  Assets,
-  Container,
-  Sprite,
-  Graphics,
-  Text,
-} from "pixi.js";
+import { Application, Assets, Sprite, Graphics } from "pixi.js";
 import { setupSpeechRecognition } from "./speech-recognition";
+import { addFloatingTextPlugin } from "./floating-text";
+import { Grid } from "./grid";
 
 function loadAsset(assetPath: string) {
   return Assets.load("/voicy/assets/" + assetPath);
@@ -29,51 +24,17 @@ function loadAsset(assetPath: string) {
   const bunny = new Sprite(texture);
 
   const cellSize = 100;
-  const gridSize = 5;
-  const grid: Graphics[][] = [];
-  for (let row = 0; row < gridSize; row++) {
-    grid[row] = [];
-    for (let col = 0; col < gridSize; col++) {
-      const cell = new Graphics();
-      cell.rect(0, 0, cellSize, cellSize);
-      cell.fill(0x66ccff);
-      cell.stroke({ width: 1, color: 0x000000 });
-      cell.x = col * cellSize;
-      cell.y = row * cellSize;
-      app.stage.addChild(cell);
-      grid[row][col] = cell;
-    }
-  }
-
-  function centerGrid() {
-    const gridWidth = gridSize * cellSize;
-    const gridHeight = gridSize * cellSize;
-    const offsetX = (app.screen.width - gridWidth) / 2;
-    const offsetY = (app.screen.height - gridHeight) / 2;
-
-    for (let row = 0; row < gridSize; row++) {
-      for (let col = 0; col < gridSize; col++) {
-        const cell = grid[row][col];
-        cell.x = col * cellSize + offsetX;
-        cell.y = row * cellSize + offsetY;
-      }
-    }
-  }
-
-  centerGrid();
+  const grid = new Grid(app, cellSize, 5, 5);
+  grid.centerGrid();
 
   const players = [
-    { color: 0xff0000, position: { x: 0, y: 0 }, sprite: new Graphics() }, // Red player
-    { color: 0x0000ff, position: { x: 4, y: 4 }, sprite: new Graphics() }, // Blue player
+    { color: 0xff0000, position: { x: 0, y: 0 }, sprite: new Graphics() },
   ];
 
-  function updatePlayerPosition(
-    player: (typeof players)[0],
-    grid: Graphics[][]
-  ) {
-    const cell = grid[player.position.y][player.position.x];
-    player.sprite.x = player.position.x + cell.x + cellSize / 2;
-    player.sprite.y = player.position.y + cell.y + cellSize / 2;
+  function updatePlayerPosition(player: (typeof players)[0], grid: Grid) {
+    const cell = grid.getCell(player.position.y, player.position.x);
+    player.sprite.x = cell.x + cellSize / 2;
+    player.sprite.y = cell.y + cellSize / 2;
   }
 
   players.forEach((player) => {
@@ -82,47 +43,6 @@ function loadAsset(assetPath: string) {
     app.stage.addChild(player.sprite);
     updatePlayerPosition(player, grid);
   });
-
-  // Create a container for voice command visualizations
-  const commandContainer = new Container();
-  app.stage.addChild(commandContainer);
-
-  function visualizeCommand(command: string) {
-    const text = new Text({
-      text: command,
-      style: {
-        fontFamily: "Arial",
-        fontSize: 24,
-        fill: 0xffffff,
-        align: "center",
-      },
-    });
-
-    text.x = app.screen.width / 2 - text.width / 2;
-    // text.y = 50; // Start above the board
-
-    commandContainer.addChild(text);
-
-    // Animate the text flying to the top and fading out
-    const duration = 2000; // 2 seconds
-    let elapsed = 0;
-
-    app.ticker.add(ticker => {
-      elapsed += ticker.deltaMS;
-      const progress = Math.min(elapsed / duration, 1);
-
-      text.y = 100 - progress * 50; // Move up
-      text.alpha = 1 - progress; // Fade out
-
-      if (progress >= 1) {
-        ticker.destroy(); // Stop the ticker
-        commandContainer.removeChild(text); // Remove after animation
-      }
-    });
-  }
-
-  // Example usage: simulate a voice command
-  setTimeout(() => visualizeCommand("Hello, world!"), 1000);
 
   // Center the sprite's anchor point
   bunny.anchor.set(0.5);
@@ -141,8 +61,18 @@ function loadAsset(assetPath: string) {
     bunny.rotation += 0.1 * time.deltaTime;
   });
 
+  const { displayText } = addFloatingTextPlugin(app);
+
+  // const player = createPlayer();
+  // player.moveBy(1, 0);
+
+  // const players = [player];
+
+  // const controller = createController(app, players);
+
   setupSpeechRecognition((command) => {
     console.log("Received command:", command);
-    visualizeCommand(command);
+    // controller.handleCommand(command);
+    displayText(command);
   });
 })();
