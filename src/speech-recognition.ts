@@ -11,7 +11,7 @@ function removeCommonLeadingWords(str1: string, str2: string) {
   return words1.slice(i).join(" ");
 }
 
-export function setupSpeechRecognition() {
+export function setupSpeechRecognition(handler: (command: string) => void) {
   const recognition = new window.webkitSpeechRecognition();
   recognition.lang = "ru-RU";
   recognition.continuous = true;
@@ -38,9 +38,7 @@ export function setupSpeechRecognition() {
       .toUpperCase()
       .split(" ")
       .filter((x) => x);
-    if (commands.length > 0) {
-      console.log("Commands", commands);
-    }
+    commands.forEach((command) => handler(command));
   };
 
   recognition.onerror = (event) => {
@@ -56,6 +54,10 @@ export function setupSpeechRecognition() {
     setTimeout(() => {
       recognition.start();
     }, 1000);
+  };
+
+  recognition.onstart = () => {
+    console.log("Speech recognition started");
   };
 
   recognition.start();

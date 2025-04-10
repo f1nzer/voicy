@@ -1,5 +1,16 @@
-import { Application, Assets, Sprite, Graphics } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Container,
+  Sprite,
+  Graphics,
+  Text,
+} from "pixi.js";
 import { setupSpeechRecognition } from "./speech-recognition";
+
+function loadAsset(assetPath: string) {
+  return Assets.load("/voicy/assets/" + assetPath);
+}
 
 (async () => {
   // Create a new application
@@ -12,7 +23,7 @@ import { setupSpeechRecognition } from "./speech-recognition";
   document.getElementById("pixi-container")!.appendChild(app.canvas);
 
   // Load the bunny texture
-  const texture = await Assets.load("/assets/bunny.png");
+  const texture = await loadAsset("bunny.png");
 
   // Create a bunny Sprite
   const bunny = new Sprite(texture);
@@ -72,6 +83,47 @@ import { setupSpeechRecognition } from "./speech-recognition";
     updatePlayerPosition(player, grid);
   });
 
+  // Create a container for voice command visualizations
+  const commandContainer = new Container();
+  app.stage.addChild(commandContainer);
+
+  function visualizeCommand(command: string) {
+    const text = new Text({
+      text: command,
+      style: {
+        fontFamily: "Arial",
+        fontSize: 24,
+        fill: 0xffffff,
+        align: "center",
+      },
+    });
+
+    text.x = app.screen.width / 2 - text.width / 2;
+    // text.y = 50; // Start above the board
+
+    commandContainer.addChild(text);
+
+    // Animate the text flying to the top and fading out
+    const duration = 2000; // 2 seconds
+    let elapsed = 0;
+
+    app.ticker.add(ticker => {
+      elapsed += ticker.deltaMS;
+      const progress = Math.min(elapsed / duration, 1);
+
+      text.y = 100 - progress * 50; // Move up
+      text.alpha = 1 - progress; // Fade out
+
+      if (progress >= 1) {
+        ticker.destroy(); // Stop the ticker
+        commandContainer.removeChild(text); // Remove after animation
+      }
+    });
+  }
+
+  // Example usage: simulate a voice command
+  setTimeout(() => visualizeCommand("Hello, world!"), 1000);
+
   // Center the sprite's anchor point
   bunny.anchor.set(0.5);
 
@@ -89,5 +141,8 @@ import { setupSpeechRecognition } from "./speech-recognition";
     bunny.rotation += 0.1 * time.deltaTime;
   });
 
-  setupSpeechRecognition();
+  setupSpeechRecognition((command) => {
+    console.log("Received command:", command);
+    visualizeCommand(command);
+  });
 })();
