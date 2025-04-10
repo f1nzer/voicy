@@ -1,9 +1,40 @@
-import { Graphics } from "pixi.js";
+import { Application, Graphics } from "pixi.js";
 import { GamepadButton, Player } from "./models";
 import { Grid } from "./grid";
 
 export class MazePlayer implements Player {
-  constructor(private grid: Grid, private x: number, private y: number) {}
+  private graphics: Graphics;
+
+  constructor(
+    private app: Application,
+    private grid: Grid,
+    private x: number,
+    private y: number
+  ) {
+    this.graphics = new Graphics();
+    this.graphics.circle(0, 0, this.grid.getCellSize() / 4);
+    this.graphics.fill(0xff0000);
+    this.updatePosition();
+    this.app.stage.addChild(this.graphics);
+
+    // for debug purposes
+    window.addEventListener("keydown", (event) => {
+      switch (event.key.toUpperCase()) {
+        case "W":
+          this.handle(GamepadButton.Up);
+          break;
+        case "S":
+          this.handle(GamepadButton.Down);
+          break;
+        case "A":
+          this.handle(GamepadButton.Left);
+          break;
+        case "D":
+          this.handle(GamepadButton.Right);
+          break;
+      }
+    });
+  }
 
   handle(button: GamepadButton) {
     switch (button) {
@@ -34,20 +65,14 @@ export class MazePlayer implements Player {
   }
 
   isValidMove(newX: number, newY: number): boolean {
-    return (
-      newX >= 0 &&
-      newY >= 0 &&
-      newX < this.grid.getGrid()[0].length &&
-      newY < this.grid.getGrid().length
-    );
+    const { rows, cols } = this.grid.getDimensions();
+    return newX >= 0 && newY >= 0 && newX < cols && newY < rows;
   }
 
   updatePosition() {
-    const playerGraphics = new Graphics();
-    playerGraphics.clear();
-    playerGraphics.beginFill(0xff0000);
-    playerGraphics.circle(this.x * 100 + 50, this.y * 100 + 50, 20);
-    playerGraphics.endFill();
-    this.grid.getCell(this.x, this.y).addChild(playerGraphics);
+    const cellSize = this.grid.getCellSize();
+    const cell = this.grid.getCell(this.x, this.y);
+    this.graphics.x = cell.x + cellSize / 2;
+    this.graphics.y = cell.y + cellSize / 2;
   }
 }

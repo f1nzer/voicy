@@ -17,7 +17,7 @@ export class Grid {
       const row: Graphics[] = [];
       for (let j = 0; j < cols; j++) {
         const cell = new Graphics();
-        cell.rect(j * cellSize, i * cellSize, cellSize, cellSize);
+        cell.rect(0, 0, cellSize, cellSize);
         cell.fill(0x66ccff);
         cell.stroke({ width: 1, color: 0x000000 });
         row.push(cell);
@@ -31,6 +31,17 @@ export class Grid {
     return this.grid;
   }
 
+  getCellSize() {
+    return this.cellSize;
+  }
+
+  getDimensions() {
+    return {
+      rows: this.rows,
+      cols: this.cols,
+    };
+  }
+
   centerGrid() {
     const gridWidth = this.cols * this.cellSize;
     const gridHeight = this.rows * this.cellSize;
@@ -40,13 +51,13 @@ export class Grid {
     for (let row = 0; row < this.rows; row++) {
       for (let col = 0; col < this.cols; col++) {
         const cell = this.getCell(row, col);
-        cell.x += offsetX;
-        cell.y += offsetY;
+        cell.x += row * this.cellSize + offsetX;
+        cell.y += col * this.cellSize + offsetY;
       }
     }
   }
 
-  getCell(row: number, col: number) {
-    return this.grid[row][col];
+  getCell(x: number, y: number) {
+    return this.grid[x][y];
   }
 }
