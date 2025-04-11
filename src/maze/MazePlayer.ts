@@ -1,21 +1,15 @@
-import { Application, Graphics } from "pixi.js";
-import { GamepadButton, Player } from "./models";
-import { Grid } from "./grid";
+import { Container, Graphics } from "pixi.js";
+import { GamepadButton, Player } from "../models";
+import { Grid } from "./Grid";
 
-export class MazePlayer implements Player {
+export class MazePlayer extends Container implements Player {
   private graphics: Graphics;
 
-  constructor(
-    private app: Application,
-    private grid: Grid,
-    private x: number,
-    private y: number
-  ) {
+  constructor(private grid: Grid, private posX: number, private posY: number) {
+    super();
+
     this.graphics = new Graphics();
-    this.graphics.circle(0, 0, this.grid.getCellSize() / 4);
-    this.graphics.fill(0xff0000);
-    this.updatePosition();
-    this.app.stage.addChild(this.graphics);
+    this.addChild(this.graphics);
 
     // for debug purposes
     window.addEventListener("keydown", (event) => {
@@ -54,25 +48,34 @@ export class MazePlayer implements Player {
   }
 
   moveBy(x: number, y: number) {
-    const newX = this.x + x;
-    const newY = this.y + y;
+    const newX = this.posX + x;
+    const newY = this.posY + y;
 
     if (this.isValidMove(newX, newY)) {
-      this.x = newX;
-      this.y = newY;
-      this.updatePosition();
+      this.posX = newX;
+      this.posY = newY;
+      this.render();
     }
   }
 
   isValidMove(newX: number, newY: number): boolean {
-    const { rows, cols } = this.grid.getDimensions();
-    return newX >= 0 && newY >= 0 && newX < cols && newY < rows;
+    const cell = this.grid.getCell(newX, newY);
+    if (!cell || cell.isBlocked()) {
+      return false;
+    }
+
+    return true;
   }
 
-  updatePosition() {
+  render() {
     const cellSize = this.grid.getCellSize();
-    const cell = this.grid.getCell(this.x, this.y);
-    this.graphics.x = cell.x + cellSize / 2;
-    this.graphics.y = cell.y + cellSize / 2;
+
+    this.graphics.clear();
+    this.graphics.circle(0, 0, cellSize / 4);
+    this.graphics.fill(0xff0000);
+
+    const cell = this.grid.getCell(this.posX, this.posY)!;
+    this.x = cell.x + cellSize / 2;
+    this.y = cell.y + cellSize / 2;
   }
 }

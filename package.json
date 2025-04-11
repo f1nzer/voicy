@@ -10,6 +10,7 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@pixi/sound": "^6.0.1",
     "@types/dom-speech-recognition": "^0.0.6",
     "pixi.js": "^8.8.1"
   },

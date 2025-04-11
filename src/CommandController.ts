@@ -5,7 +5,7 @@ type PlayerButton = {
   button: GamepadButton;
 };
 
-export class Controller {
+export class CommandController {
   private playersByCommand: Map<string, PlayerButton> = new Map();
 
   assignCommand(command: string, player: Player, button: GamepadButton) {
@@ -19,10 +19,11 @@ export class Controller {
   handleCommand(command: string) {
     const playerButton = this.playersByCommand.get(command);
     if (!playerButton) {
-      return;
+      return false;
     }
 
     const { player, button } = playerButton;
     player.handle(button);
+    return true;
   }
 }

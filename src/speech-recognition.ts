@@ -27,13 +27,10 @@ export function setupSpeechRecognition(handler: (command: string) => void) {
       }
     }
 
-    const cleanedTranscript = removeCommonLeadingWords(
-      transcript,
-      lastTranscript
-    );
+    const resTranscript = removeCommonLeadingWords(transcript, lastTranscript);
     lastTranscript = transcript;
 
-    const commands = cleanedTranscript
+    const commands = resTranscript
       .trim()
       .toUpperCase()
       .split(" ")
@@ -61,4 +58,6 @@ export function setupSpeechRecognition(handler: (command: string) => void) {
   };
 
   recognition.start();
+
+  return recognition;
 }

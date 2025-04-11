@@ -1,3 +1,5 @@
+import { Container, Ticker } from "pixi.js";
+
 export enum GamepadButton {
   Up = "up",
   Down = "down",
@@ -11,10 +13,7 @@ export interface Player {
   handle(button: GamepadButton): void;
 }
 
-export class ColorManager {
-  private _allowColors: string[] = ["0x0000ff", "0xff0000"];
-
-  public static getColor(): string {
-    return "#ffffff";
-  }
+export interface Scene extends Container {
+  resize(width: number, height: number): void;
+  update(ticker: Ticker): void;
 }
